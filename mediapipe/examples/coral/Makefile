@@ -5,7 +5,7 @@ MEDIAPIPE_DIR := $(MAKEFILE_DIR)/../../..
 
 BAZEL_COMPILATION_MODE ?= opt
 BAZEL_TARGET ?= mediapipe/examples/coral:face_detection_tpu
-BAZEL_CPU ?= k8
+BAZEL_CPU ?= aarch64
 
 OUT_DIR := $(MEDIAPIPE_DIR)/out/$(BAZEL_CPU)
 
@@ -43,13 +43,9 @@ endif
 build:
 	(cd $(MEDIAPIPE_DIR) && \
 	 bazel build \
-	     --crosstool_top=@crosstool//:toolchains \
-	     --compiler=gcc \
-	     --cpu=${BAZEL_CPU} \
-	     --compilation_mode=${BAZEL_COMPILATION_MODE} \
-	     --define darwinn_portable=1 \
-	     --define MEDIAPIPE_DISABLE_GPU=1 \
-	     --define MEDIAPIPE_EDGE_TPU=all \
+	     --config=gcc_config \
+		 --define MEDIAPIPE_DISABLE_GPU=1 \
 	     $(BAZEL_TARGET) && \
 	 mkdir -p $(OUT_DIR) && \
 	 cp -f $(call bazel_output,$(BAZEL_TARGET)) $(OUT_DIR))
+	 cp -rvf $(OUT_DIR)/* /home/manu/nfs/tmp/mediapipe

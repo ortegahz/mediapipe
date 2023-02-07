@@ -1,0 +1,28 @@
+# install
+gcc version 9.4.0 (Ubuntu 9.4.0-1ubuntu1~18.04)
+
+# python
+python setup.py develop
+
+# coral
+make -C mediapipe/examples/coral \
+     BAZEL_TARGET=mediapipe/examples/coral:face_detection_tpu \
+     build
+make -C mediapipe/examples/coral \
+     BAZEL_TARGET=mediapipe/examples/desktop/hand_tracking:hand_tracking_cpu \
+     build
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt_manu/opencv_install/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt_manu/ffmpeg_install/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt_manu/x264_install/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt_manu/xvidcore_install/lib
+
+GLOG_logtostderr=1 ./face_detection_tpu --calculator_graph_config_file ./face_detection_desktop_live.pbtxt
+GLOG_logtostderr=1 ./hand_tracking_cpu --calculator_graph_config_file ./hand_tracking_desktop_live.pbtxt --input_video_path ./video.mp4 --output_video_path ./results.mp4
+
+# desktop
+bazel run --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/hello_world:hello_world
+bazel run --copt -DMESA_EGL_NO_X11_HEADERS --copt -DEGL_NO_X11 mediapipe/examples/desktop/hello_world:hello_world
+
+bazel build -c opt --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/hand_tracking:hand_tracking_cpu
+GLOG_logtostderr=1 bazel-bin/mediapipe/examples/desktop/hand_tracking/hand_tracking_cpu --calculator_graph_config_file=mediapipe/graphs/hand_tracking/hand_tracking_desktop_live.pbtxt --input_video_path=rtsp://192.168.11.165:554/live/av0
