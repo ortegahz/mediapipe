@@ -18,6 +18,7 @@
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "mediapipe/framework/calculator_framework.h"
+#include "mediapipe/framework/formats/landmark.pb.h"
 #include "mediapipe/framework/formats/image_frame.h"
 #include "mediapipe/framework/formats/image_frame_opencv.h"
 #include "mediapipe/framework/port/file_helpers.h"
@@ -28,7 +29,9 @@
 #include "mediapipe/framework/port/status.h"
 
 constexpr char kInputStream[] = "input_video";
-constexpr char kOutputStream[] = "output_video";
+// constexpr char kOutputStream[] = "landmarks";
+// constexpr char kOutputStream[] = "output_video";
+constexpr char kOutputStream[] = "debug_out";
 constexpr char kWindowName[] = "MediaPipe";
 
 ABSL_FLAG(std::string, calculator_graph_config_file, "",
@@ -95,11 +98,16 @@ absl::Status RunMPPGraph() {
       LOG(INFO) << "Empty frame, end of video reached.";
       break;
     }
+
+    LOG(INFO) << "cvtColor.";
+
     cv::Mat camera_frame;
     cv::cvtColor(camera_frame_raw, camera_frame, cv::COLOR_BGR2RGB);
     if (!load_video) {
       cv::flip(camera_frame, camera_frame, /*flipcode=HORIZONTAL*/ 1);
     }
+
+    LOG(INFO) << "Wrap Mat into an ImageFrame.";
 
     // Wrap Mat into an ImageFrame.
     auto input_frame = absl::make_unique<mediapipe::ImageFrame>(
@@ -108,6 +116,8 @@ absl::Status RunMPPGraph() {
     cv::Mat input_frame_mat = mediapipe::formats::MatView(input_frame.get());
     camera_frame.copyTo(input_frame_mat);
 
+    LOG(INFO) << "Send image packet into the graph.";
+
     // Send image packet into the graph.
     size_t frame_timestamp_us =
         (double)cv::getTickCount() / (double)cv::getTickFrequency() * 1e6;
@@ -115,29 +125,38 @@ absl::Status RunMPPGraph() {
         kInputStream, mediapipe::Adopt(input_frame.release())
                           .At(mediapipe::Timestamp(frame_timestamp_us))));
 
+    LOG(INFO) << "Get the graph result packet, or stop if that fails.";
+
     // Get the graph result packet, or stop if that fails.
     mediapipe::Packet packet;
+    LOG(INFO) << "if (!poller.Next(&packet)) break;";
     if (!poller.Next(&packet)) break;
-    auto& output_frame = packet.Get<mediapipe::ImageFrame>();
+    // auto& output_frame = packet.Get<mediapipe::ImageFrame>();
+    // auto& output_frame = packet.Get<std::vector<mediapipe::NormalizedLandmarkList>();
+    auto& output = packet.Get<std::vector<mediapipe::NormalizedLandmarkList>>();
+    LOG(INFO) << "running ...";
+    LOG(INFO) << "x --> " << output[0].landmark(0).x();
+    LOG(INFO) << "y --> " << output[0].landmark(0).y();
+    LOG(INFO) << "z --> " << output[0].landmark(0).z();
 
-    // Convert back to opencv for display or saving.
-    cv::Mat output_frame_mat = mediapipe::formats::MatView(&output_frame);
-    cv::cvtColor(output_frame_mat, output_frame_mat, cv::COLOR_RGB2BGR);
-    if (save_video) {
-      if (!writer.isOpened()) {
-        LOG(INFO) << "Prepare video writer.";
-        writer.open(absl::GetFlag(FLAGS_output_video_path),
-                    mediapipe::fourcc('a', 'v', 'c', '1'),  // .mp4
-                    capture.get(cv::CAP_PROP_FPS), output_frame_mat.size());
-        RET_CHECK(writer.isOpened());
-      }
-      writer.write(output_frame_mat);
-    } else {
-      cv::imshow(kWindowName, output_frame_mat);
-      // Press any key to exit.
-      const int pressed_key = cv::waitKey(5);
-      if (pressed_key >= 0 && pressed_key != 255) grab_frames = false;
-    }
+    // // Convert back to opencv for display or saving.
+    // cv::Mat output_frame_mat = mediapipe::formats::MatView(&output_frame);
+    // cv::cvtColor(output_frame_mat, output_frame_mat, cv::COLOR_RGB2BGR);
+    // if (save_video) {
+    //   if (!writer.isOpened()) {
+    //     LOG(INFO) << "Prepare video writer.";
+    //     writer.open(absl::GetFlag(FLAGS_output_video_path),
+    //                 mediapipe::fourcc('a', 'v', 'c', '1'),  // .mp4
+    //                 capture.get(cv::CAP_PROP_FPS), output_frame_mat.size());
+    //     RET_CHECK(writer.isOpened());
+    //   }
+    //   writer.write(output_frame_mat);
+    // } else {
+    //   cv::imshow(kWindowName, output_frame_mat);
+    //   // Press any key to exit.
+    //   const int pressed_key = cv::waitKey(5);
+    //   if (pressed_key >= 0 && pressed_key != 255) grab_frames = false;
+    // }
   }
 
   LOG(INFO) << "Shutting down.";

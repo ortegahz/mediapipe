@@ -49,3 +49,4 @@ build:
 	 mkdir -p $(OUT_DIR) && \
 	 cp -f $(call bazel_output,$(BAZEL_TARGET)) $(OUT_DIR))
 	 cp -rvf $(OUT_DIR)/* /home/manu/nfs/tmp/mediapipe
+	 cp -rvf /media/manu/kingstop/workspace/mediapipe/mediapipe/graphs/hand_tracking/hand_tracking_desktop_live_pruning.pbtxt /home/manu/nfs/tmp/mediapipe
