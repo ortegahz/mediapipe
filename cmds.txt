@@ -11,6 +11,12 @@ make -C mediapipe/examples/coral \
 make -C mediapipe/examples/coral \
      BAZEL_TARGET=mediapipe/examples/desktop/hand_tracking:hand_tracking_cpu \
      build
+make -C mediapipe/examples/coral \
+     BAZEL_TARGET=mediapipe/examples/desktop/hello_world:hello_world \
+     build
+make -C mediapipe/examples/coral \
+     BAZEL_TARGET=mediapipe/examples/desktop/gesture_recognition:gesture_recognition \
+     build
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt_manu/opencv_install/lib  && \
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt_manu/ffmpeg_install/lib && \
@@ -21,6 +27,8 @@ GLOG_logtostderr=1 ./face_detection_tpu --calculator_graph_config_file ./face_de
 GLOG_logtostderr=1 ./hand_tracking_cpu --calculator_graph_config_file ./hand_tracking_desktop_live.pbtxt --input_video_path ./video.mp4 --output_video_path ./results.mp4
 GLOG_logtostderr=1 ./hand_tracking_cpu --calculator_graph_config_file ./hand_tracking_desktop_live_pruning.pbtxt --input_video_path ./video.mp4 --output_video_path ./results.mp4
 GLOG_logtostderr=1 ./hand_tracking_cpu --calculator_graph_config_file ./hand_tracking_desktop_live_pruning.pbtxt --input_video_path ./20230209-110951.mp4 --output_video_path ./results.mp4
+GLOG_logtostderr=1 ./hello_world
+GLOG_logtostderr=1 ./gesture_recognition
 
 # desktop
 bazel run --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/hello_world:hello_world
