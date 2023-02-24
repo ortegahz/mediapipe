@@ -25,10 +25,12 @@ absl::Status Run() {
   std::unique_ptr<GestureRecognizer> gesture_rcognizer;
   ASSIGN_OR_RETURN(gesture_rcognizer, GestureRecognizer::Create(std::move(gesture_rcognizer_options)));
 
-  cv::Mat image_mat = cv::imread("vlcsnap-2023-02-13-15h11m59s736.png");
+  cv::Mat image_mat_bgr, image_mat_rgb;
+  image_mat_bgr = cv::imread("vlcsnap-2023-02-24-11h30m17s065_rs.bmp");
+  cv::cvtColor(image_mat_bgr, image_mat_rgb, cv::COLOR_BGR2RGB);
   mediapipe::ImageFrame image_frame(
-      mediapipe::ImageFormat::SRGB, 1920, 1080,
-      image_mat.step, image_mat.data, [image_mat](uint8[]) {});
+      mediapipe::ImageFormat::SRGB, 960, 540,
+      image_mat_rgb.step, image_mat_rgb.data, [image_mat_rgb](uint8[]) {});
   mediapipe::Image image(std::make_shared<mediapipe::ImageFrame>(std::move(image_frame)));
 
   // std::optional<core::ImageProcessingOptions> image_processing_options;
@@ -43,6 +45,8 @@ absl::Status Run() {
   LOG(INFO) << "gesture_recognizer_result --> " << gesture_recognizer_result->gestures.at(0).classification(0).label();
   LOG(INFO) << "gesture_recognizer_result --> " << gesture_recognizer_result->gestures.at(0).classification(0).index();
   LOG(INFO) << "gesture_recognizer_result --> " << gesture_recognizer_result->gestures.at(0).classification(0).score();
+  LOG(INFO) << "gesture_recognizer_result --> " << gesture_recognizer_result->gestures.at(0).classification(0).has_index();
+  LOG(INFO) << "gesture_recognizer_result --> " << gesture_recognizer_result->handedness.at(0).classification(0).label();
   // const mediapipe::Classification & c = h.classification(0);
   // std::cerr << "label:" << c.label() << "\tindex:" << c.index() << "\n";
   return absl::OkStatus();
