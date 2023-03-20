@@ -30,6 +30,9 @@ GLOG_logtostderr=1 ./hand_tracking_cpu --calculator_graph_config_file ./hand_tra
 GLOG_logtostderr=1 ./hello_world
 GLOG_logtostderr=1 ./gesture_recognition
 
+# shared library
+bazel build --config=gcc_config --define MEDIAPIPE_DISABLE_GPU=1 /media/manu/kingstop/workspace/mediapipe/mediapipe/tasks/cc/vision/gesture_recognizer:gesture_recognizer
+
 # desktop
 bazel run --define MEDIAPIPE_DISABLE_GPU=1 mediapipe/examples/desktop/hello_world:hello_world
 bazel run --copt -DMESA_EGL_NO_X11_HEADERS --copt -DEGL_NO_X11 mediapipe/examples/desktop/hello_world:hello_world

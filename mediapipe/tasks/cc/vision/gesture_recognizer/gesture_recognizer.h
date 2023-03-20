@@ -56,15 +56,15 @@ struct GestureRecognizerOptions {
 
   // The minimum confidence score for the hand detection to be considered
   // successful.
-  float min_hand_detection_confidence = 0.5;
+  float min_hand_detection_confidence = 0.1;
 
   // The minimum confidence score of hand presence score in the hand landmark
   // detection.
-  float min_hand_presence_confidence = 0.5;
+  float min_hand_presence_confidence = 0.1;
 
   // The minimum confidence score for the hand tracking to be considered
   // successful.
-  float min_tracking_confidence = 0.5;
+  float min_tracking_confidence = 0.1;
 
   // TODO  Note this option is subject to change.
   // Options for configuring the canned gestures classifier, such as score
