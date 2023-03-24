@@ -147,7 +147,8 @@ float temp_x = 0;
 float temp_y = 0;
 char name[10] = {0};
 int count = 1;
-
+static int kkk = 0;
+static char bufff[64] = {0};
 namespace mediapipe
 {
   namespace tasks
@@ -167,12 +168,17 @@ namespace mediapipe
             ASSIGN_OR_RETURN(gesture_rcognizer, GestureRecognizer::Create(std::move(gesture_rcognizer_options)));
             flag = true;
           }
-          cv::Mat image_mat = cv::imread("vlcsnap-2023-02-13-15h11m59s736.png");
-          memcpy(image_mat.data, addr, 1920 * 1080 * 3);
+          int w = *(int *)(addr);
+          int h = *(int *)(addr + 4);
+          printf("w = %d  h = %d\n", w, h);
+          cv::Mat image_mat = cv::Mat(h, w, CV_8UC3, cv::Scalar(0, 0, 0));
+          //cv::Mat image_mat = cv::imread("vlcsnap-2023-02-13-15h11m59s736.png");
+          memcpy(image_mat.data, addr + 8, w * h * 3);
+
           cv::Mat image_rgb;
           cv::cvtColor(image_mat, image_rgb, CV_BGR2RGB);
           // cv::imwrite("./out.jpg", image_mat);
-          mediapipe::ImageFrame image_frame(mediapipe::ImageFormat::SRGB, 1920, 1080,image_rgb.step, image_rgb.data, [image_rgb](uint8[]) {});
+          mediapipe::ImageFrame image_frame(mediapipe::ImageFormat::SRGB, w, h,image_rgb.step, image_rgb.data, [image_rgb](uint8[]) {});
           mediapipe::Image image(std::make_shared<mediapipe::ImageFrame>(std::move(image_frame)));
           absl::StatusOr<GestureRecognizerResult> gesture_recognizer_result;
           ASSIGN_OR_RETURN(gesture_recognizer_result, gesture_rcognizer->Recognize(image));
@@ -189,7 +195,7 @@ namespace mediapipe
 
             for (int j = 0; j < 21; j++)
             {
-              temp_x = gesture_recognizer_result->hand_landmarks.at(i).landmark(j).x() * 1920;
+              temp_x = gesture_recognizer_result->hand_landmarks.at(i).landmark(j).x() * w;
               if (temp_x > rect_temp.x2)
               {
                 rect_temp.x2 = temp_x;
@@ -198,7 +204,7 @@ namespace mediapipe
               {
                 rect_temp.x1 = temp_x;
               }
-              temp_y = gesture_recognizer_result->hand_landmarks.at(i).landmark(j).y() * 1080;
+              temp_y = gesture_recognizer_result->hand_landmarks.at(i).landmark(j).y() * h;
               if (temp_y > rect_temp.y2)
               {
                 rect_temp.y2 = temp_y;
@@ -208,6 +214,12 @@ namespace mediapipe
                 rect_temp.y1 = temp_y;
               }
             }
+            //cv::rectangle(image_mat, cv::Point(rect_temp.x1, rect_temp.y1), cv::Point(rect_temp.x2, rect_temp.y2), cv::Scalar(0, 0, 255));
+            // sprintf(bufff, "%d.bmp", kkk);
+            // cv::imwrite(bufff, image_mat);
+            // kkk++;
+            // cv::imwrite(bufff, image_mat);
+            // kkk++;
             rect_temp.index = gesture_recognizer_result->gestures.at(i).classification(0).index();
             rect_temp.score = gesture_recognizer_result->gestures.at(i).classification(0).score();
             std::string tempp = gesture_recognizer_result->gestures.at(i).classification(0).label();
